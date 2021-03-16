@@ -30,6 +30,30 @@ namespace FirstCustomMiddleware
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Map
+            app.Map("/products", appBuilder =>
+            {
+                //localhost:8000/products/details
+                appBuilder.Map("/Details", HandleProductDetails());
+
+                appBuilder.Use(async (context, next) =>
+                {
+                    var name = context.Request.Query["name"];
+                    if (!string.IsNullOrWhiteSpace(name))
+                        context.Items.Add("name", name);
+
+                    await next.Invoke();
+                });
+
+                appBuilder.Run(async context =>
+                {
+                    //context.Items.TryGetValue("name", out var name);
+                    var name = context.Items["name"];
+                    await context.Response.WriteAsync($"my name is: {name}");
+                });
+            });
+
+
             // Use
             app.Use(async (context, next) =>
             {
@@ -45,7 +69,7 @@ namespace FirstCustomMiddleware
                 await context.Response.WriteAsync("This is a use Middleware");
             });
 
-            // Map
+            
 
 
             // Run -> lastest middleware executeable
@@ -85,6 +109,17 @@ namespace FirstCustomMiddleware
 
             #endregion
 
+        }
+
+        private static Action<IApplicationBuilder> HandleProductDetails()
+        {
+            return builder =>
+            {
+                builder.Run(async context =>
+                {
+                    await context.Response.WriteAsync($"this is product details page");
+                });
+            };
         }
     }
 }

@@ -33,6 +33,28 @@ namespace FirstCustomMiddleware
             // Map
             app.Map("/products", appBuilder =>
             {
+
+                //UseWhen
+                app.UseWhen(context => context.Request.Query.ContainsKey("title"), builder =>
+                {
+                    builder.Run(async context =>
+                    {
+                        var title = context.Request.Query["title"];
+                        await context.Response.WriteAsync($"title is: {title}");
+                    });
+                });
+
+                //MapWhen
+                app.MapWhen(context => context.Request.Query.ContainsKey("branch"), builder =>
+                {
+                    builder.Run(async context =>
+                    {
+                        var branch = context.Request.Query["branch"];
+                        await context.Response.WriteAsync($"branch is: {branch}");
+                    });
+                });
+
+
                 //localhost:8000/products/details
                 appBuilder.Map("/Details", HandleProductDetails());
 
